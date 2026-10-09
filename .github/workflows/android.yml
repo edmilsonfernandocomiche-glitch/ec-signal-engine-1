@@ -13,12 +13,26 @@ jobs:
     - name: Checkout
       uses: actions/checkout@v4
 
-    - name: Extrair ficheiro ZIP do projeto
+    - name: Extrair ficheiro ZIP e organizar estrutura
       run: |
+        # 1. Procura e extrai o ficheiro .zip
         ZIP_FILE=$(find . -maxdepth 2 -name "*.zip" | head -n 1)
         if [ -n "$ZIP_FILE" ]; then
           echo "Extraindo $ZIP_FILE..."
-          unzip -o "$ZIP_FILE" -d project_extracted
+          unzip -o "$ZIP_FILE" -d src_temp
+        fi
+
+        # 2. Localiza onde ficou o AndroidManifest.xml
+        MANIFEST_PATH=$(find . -name "AndroidManifest.xml" | head -n 1)
+        if [ -n "$MANIFEST_PATH" ]; then
+          SRC_DIR=$(dirname "$MANIFEST_PATH")
+          echo "Manifest encontrado em: $SRC_DIR"
+          
+          # Cria a estrutura padrao do Android caso nao exista
+          mkdir -p app/src/main
+          
+          # Move os ficheiros para a estrutura correta do Android
+          cp -r "$SRC_DIR"/* app/src/main/ 2>/dev/null || true
         fi
 
     - name: Configurar Java 17
@@ -27,18 +41,14 @@ jobs:
         java-version: '17'
         distribution: 'temurin'
 
-    - name: Instalar Gradle e Compilar APK
+    - name: Instalar Gradle Wrapper e Compilar APK
       run: |
-        # Localiza onde está o build.gradle do projeto
-        BUILD_DIR=$(find . -name "build.gradle" -o -name "build.gradle.kts" | head -n 1 | xargs dirname)
-        if [ -n "$BUILD_DIR" ]; then
-          cd "$BUILD_DIR"
-          echo "Compilando em $BUILD_DIR..."
-          gradle assembleDebug
-        else
-          echo "Ficheiro build.gradle não encontrado."
-          exit 1
-        fi
+        # Gera o gradle wrapper
+        gradle wrapper
+        chmod +x gradlew
+        
+        # Compila o APK Debug
+        ./gradlew assembleDebug --stacktrace
 
     - name: Guardar APK
       uses: actions/upload-artifact@v4
