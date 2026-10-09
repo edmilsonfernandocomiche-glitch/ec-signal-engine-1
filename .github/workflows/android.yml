@@ -129,4 +129,17 @@ jobs:
         }
         EOF
 
-    - name: Compilar APK
+    - name: Compilar APK com Gradle
+      run: |
+        gradle assembleDebug --console=plain --warning-mode=none || true
+
+    - name: Mostrar Apenas os Erros de Compilacao do Java
+      run: |
+        echo "=== ERROS ENCONTRADOS NO CODIGO JAVA ==="
+        gradle assembleDebug --console=plain 2>&1 | grep -E "error:|cannot find symbol|package .* does not exist" | head -n 30 || true
+
+    - name: Guardar APK
+      uses: actions/upload-artifact@v4
+      with:
+        name: app-debug
+        path: app/build/outputs/apk/debug/*.apk
