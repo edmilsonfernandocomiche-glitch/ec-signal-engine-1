@@ -28,22 +28,22 @@ jobs:
           unzip -o "$ZIP_FILE" -d root_extracted
         fi
 
-        # 2. Garante a estrutura correta de pastas app/src/main
+        # 2. Garante a estrutura de pastas app/src/main
         mkdir -p app/src/main/java
         mkdir -p app/src/main/res
 
-        # Copia ficheiros de código Java e Manifest
+        # Copia ficheiros Java e Manifest
         find . -name "AndroidManifest.xml" -exec cp {} app/src/main/ \;
         find . -name "*.java" -exec cp {} app/src/main/java/ \; 2>/dev/null || true
 
-        # Copia recursos (xml, layouts, etc.)
+        # Copia recursos
         find . -name "colors.xml" -o -name "strings.xml" -o -name "styles.xml" -o -name "themes.xml" -o -name "ic_launcher.xml" | while read file; do
           dir_name=$(basename $(dirname "$file"))
           mkdir -p "app/src/main/res/$dir_name"
           cp "$file" "app/src/main/res/$dir_name/"
         done
 
-        # 3. Cria settings.gradle compatível
+        # 3. Cria settings.gradle
         cat << 'EOF' > settings.gradle
         pluginManagement {
             repositories {
@@ -111,7 +111,7 @@ jobs:
       run: |
         gradle wrapper --gradle-version 8.0
         chmod +x gradlew
-        ./gradlew assembleDebug --no-daemon
+        ./gradlew assembleDebug --stacktrace --no-daemon
 
     - name: Guardar APK
       uses: actions/upload-artifact@v4
