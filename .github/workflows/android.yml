@@ -26,27 +26,26 @@ jobs:
 
     - name: Configurar e Organizar Projeto Android
       run: |
-        # 1. Extrai o ZIP caso exista
+        # 1. Limpa compilações anteriores
+        rm -rf app
+        mkdir -p app/src/main
+
+        # 2. Extrai o ZIP diretamente para a estrutura do projeto
         ZIP_FILE=$(find . -maxdepth 2 -name "*.zip" | head -n 1)
         if [ -n "$ZIP_FILE" ]; then
           echo "Extraindo $ZIP_FILE..."
-          unzip -o "$ZIP_FILE" -d root_extracted
+          unzip -o "$ZIP_FILE" -d temp_zip
+          
+          # Mover o conteúdo extraído sem duplicar ficheiros
+          if [ -d "temp_zip/app/src/main" ]; then
+            cp -r temp_zip/app/src/main/* app/src/main/
+          elif [ -d "temp_zip/src/main" ]; then
+            cp -r temp_zip/src/main/* app/src/main/
+          else
+            cp -r temp_zip/* app/src/main/ 2>/dev/null || true
+          fi
+          rm -rf temp_zip
         fi
-
-        # 2. Garante a estrutura de pastas app/src/main
-        mkdir -p app/src/main/java
-        mkdir -p app/src/main/res
-
-        # Copia ficheiros Java e Manifest
-        find . -name "AndroidManifest.xml" -exec cp {} app/src/main/ \;
-        find . -name "*.java" -exec cp {} app/src/main/java/ \; 2>/dev/null || true
-
-        # Copia recursos
-        find . -name "colors.xml" -o -name "strings.xml" -o -name "styles.xml" -o -name "themes.xml" -o -name "ic_launcher.xml" | while read file; do
-          dir_name=$(basename $(dirname "$file"))
-          mkdir -p "app/src/main/res/$dir_name"
-          cp "$file" "app/src/main/res/$dir_name/"
-        done
 
         # 3. Cria settings.gradle
         cat << 'EOF' > settings.gradle
