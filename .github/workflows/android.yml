@@ -13,6 +13,16 @@ jobs:
     - name: Checkout
       uses: actions/checkout@v4
 
+    - name: Extrair ficheiro ZIP do projeto
+      run: |
+        ZIP_FILE=$(find . -maxdepth 2 -name "*.zip" | head -n 1)
+        if [ -n "$ZIP_FILE" ]; then
+          echo "Extraindo $ZIP_FILE..."
+          unzip -o "$ZIP_FILE" -d extracted_project
+        else
+          echo "Nenhum ficheiro ZIP encontrado!"
+        fi
+
     - name: Configurar Java 17
       uses: actions/setup-java@v4
       with:
@@ -20,20 +30,16 @@ jobs:
         distribution: 'temurin'
         cache: gradle
 
-    - name: Permissão no Gradle
+    - name: Dar permissão e Compilar APK
       run: |
-        if [ -f "./gradlew" ]; then
-          chmod +x ./gradlew
-        elif [ -f "./EC_Signal_Engine_Android/gradlew" ]; then
-          chmod +x ./EC_Signal_Engine_Android/gradlew
-        fi
-
-    - name: Compilar APK
-      run: |
-        if [ -f "./gradlew" ]; then
+        GRADLE_DIR=$(find . -name "gradlew" -exec dirname {} \;)
+        if [ -n "$GRADLE_DIR" ]; then
+          cd "$GRADLE_DIR"
+          chmod +x gradlew
           ./gradlew assembleDebug
-        elif [ -f "./EC_Signal_Engine_Android/gradlew" ]; then
-          cd EC_Signal_Engine_Android && ./gradlew assembleDebug
+        else
+          echo "Ficheiro gradlew não encontrado dentro do ZIP."
+          exit 1
         fi
 
     - name: Guardar APK
