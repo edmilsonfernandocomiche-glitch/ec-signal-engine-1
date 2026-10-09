@@ -46,10 +46,19 @@ jobs:
           cp "$MANIFEST_FILE" app/src/main/
         fi
 
-        # 4. Copia ficheiros Java
-        find temp_zip -name "*.java" -exec cp {} app/src/main/java/ \; 2>/dev/null || true
+        # 4. Copia os ficheiros Java preservando a estrutura de pacotes
+        find temp_zip -name "*.java" | while read file; do
+          pkg=$(grep -m 1 "^package " "$file" | sed 's/package //;s/;//' | tr -d '\r')
+          if [ -n "$pkg" ]; then
+            pkg_path=$(echo "$pkg" | tr '.' '/')
+            mkdir -p "app/src/main/java/$pkg_path"
+            cp "$file" "app/src/main/java/$pkg_path/"
+          else
+            cp "$file" app/src/main/java/
+          fi
+        done
 
-        # 5. Copia recursos XML evitando duplicados
+        # 5. Copia recursos XML
         find temp_zip -name "activity_*.xml" -o -name "layout_*.xml" -o -name "*content*.xml" | while read file; do
           cp "$file" app/src/main/res/layout/ 2>/dev/null || true
         done
@@ -62,9 +71,7 @@ jobs:
           cp "$file" app/src/main/res/drawable/ 2>/dev/null || true
         done
 
-        # Elimina ficheiro styles.xml em falta ou duplicado se existir
         rm -f app/src/main/res/values/styles.xml
-
         rm -rf temp_zip
 
         # 6. Cria settings.gradle
