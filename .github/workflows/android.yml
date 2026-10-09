@@ -18,9 +18,7 @@ jobs:
         ZIP_FILE=$(find . -maxdepth 2 -name "*.zip" | head -n 1)
         if [ -n "$ZIP_FILE" ]; then
           echo "Extraindo $ZIP_FILE..."
-          unzip -o "$ZIP_FILE" -d extracted_project
-        else
-          echo "Nenhum ficheiro ZIP encontrado!"
+          unzip -o "$ZIP_FILE" -d project_extracted
         fi
 
     - name: Configurar Java 17
@@ -28,17 +26,17 @@ jobs:
       with:
         java-version: '17'
         distribution: 'temurin'
-        cache: gradle
 
-    - name: Dar permissão e Compilar APK
+    - name: Instalar Gradle e Compilar APK
       run: |
-        GRADLE_DIR=$(find . -name "gradlew" -exec dirname {} \;)
-        if [ -n "$GRADLE_DIR" ]; then
-          cd "$GRADLE_DIR"
-          chmod +x gradlew
-          ./gradlew assembleDebug
+        # Localiza onde está o build.gradle do projeto
+        BUILD_DIR=$(find . -name "build.gradle" -o -name "build.gradle.kts" | head -n 1 | xargs dirname)
+        if [ -n "$BUILD_DIR" ]; then
+          cd "$BUILD_DIR"
+          echo "Compilando em $BUILD_DIR..."
+          gradle assembleDebug
         else
-          echo "Ficheiro gradlew não encontrado dentro do ZIP."
+          echo "Ficheiro build.gradle não encontrado."
           exit 1
         fi
 
