@@ -1,0 +1,19 @@
+EC SIGNAL ENGINE V4.1 — GUIA
+
+1. Abra o painel Cloudflare: https://dash.cloudflare.com/
+2. Workers & Pages -> Create -> Worker.
+3. Crie o Worker e abra Edit Code.
+4. Cole worker/worker.js deste pacote.
+5. Publique (Deploy).
+6. Em Settings -> Variables and Secrets, crie um Secret:
+   Nome: OTCHARTS_API_KEY
+   Valor: a sua chave OTCharts.
+7. Faça novo Deploy.
+8. Copie o URL https://NOME.workers.dev.
+9. Abra frontend/index.html no Chrome.
+10. Cole o URL em "URL DO NOSSO WORKER".
+11. Testar conexão -> Atualizar ativos -> AUD/USD OTC -> M5 -> Carregar Candles.
+
+ATENÇÃO: a documentação atual do OTCharts informa que o plano Free ($0) tem 200 requests/semana, 0 streams e portanto não oferece LIVE. Streaming começa no Lite ($15), com 1 stream. Confirme preços no fornecedor antes de pagar.
+
+SEGURANÇA: nunca coloque a API key no HTML nem a envie no chat. O Worker usa Secret para manter a chave fora do navegador. A V4.1 é somente leitura e não executa operações.

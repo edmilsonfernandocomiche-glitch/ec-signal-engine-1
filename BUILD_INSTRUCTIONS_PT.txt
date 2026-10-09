@@ -1,0 +1,14 @@
+EC SIGNAL ENGINE V4.1 — PROJECTO ANDROID
+
+1. Num computador, instale o Android Studio.
+2. Extraia o ZIP e abra a pasta EC_Signal_Engine_Android no Android Studio.
+3. Aguarde a sincronização do Gradle. Se solicitado, instale o Android SDK Platform 35.
+4. Escolha Build > Build APK(s).
+5. O APK de teste ficará em app/build/outputs/apk/debug/app-debug.apk.
+6. Copie o APK para o Samsung A05 e instale-o. Pode ser necessário autorizar a instalação dessa origem.
+
+IMPORTANTE:
+- O aplicativo precisa de Internet e de um Cloudflare Worker válido.
+- A chave OTCharts deve ficar guardada como Secret no Worker, nunca no app.
+- Este ZIP usa a interface HTML do ficheiro enviado nesta conversa. Essa interface apresenta CARREGAR CANDLES e INICIAR AUTO; não é idêntica à captura com ANALISAR AGORA e ao erro “Poucas candles fechadas: 0”.
+- Ainda não existe APK compilado/testado neste ambiente, porque não há Android SDK/Gradle instalado.
