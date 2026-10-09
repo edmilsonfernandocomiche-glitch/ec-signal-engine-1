@@ -26,36 +26,51 @@ jobs:
 
     - name: Configurar e Organizar Projeto Android
       run: |
-        # 1. Limpa diretórios antigos
+        # 1. Prepara a estrutura do Android
         rm -rf app temp_zip
-        mkdir -p app/src/main
+        mkdir -p app/src/main/java
+        mkdir -p app/src/main/res/layout
+        mkdir -p app/src/main/res/values
+        mkdir -p app/src/main/res/drawable
 
-        # 2. Extrai o ficheiro ZIP
+        # 2. Extrai o ZIP
         ZIP_FILE=$(find . -maxdepth 2 -name "*.zip" | head -n 1)
         if [ -n "$ZIP_FILE" ]; then
           echo "Extraindo $ZIP_FILE..."
           unzip -o "$ZIP_FILE" -d temp_zip
         fi
 
-        # 3. Localiza onde está o AndroidManifest.xml ou a pasta com código
+        # 3. Organiza apenas o AndroidManifest.xml
         MANIFEST_FILE=$(find temp_zip -name "AndroidManifest.xml" | head -n 1)
         if [ -n "$MANIFEST_FILE" ]; then
-          SRC_BASE=$(dirname "$MANIFEST_FILE")
-          echo "Copiando ficheiros a partir de: $SRC_BASE"
-          cp -r "$SRC_BASE"/* app/src/main/
-        else
-          echo "Aviso: AndroidManifest.xml não foi encontrado no ZIP."
-          cp -r temp_zip/* app/src/main/ 2>/dev/null || true
+          cp "$MANIFEST_FILE" app/src/main/
         fi
+
+        # 4. Copia APENAS ficheiros Java para a pasta de codigo
+        find temp_zip -name "*.java" -exec cp {} app/src/main/java/ \; 2>/dev/null || true
+
+        # 5. Copia APENAS recursos XML para as suas respetivas pastas em res
+        find temp_zip -name "activity_*.xml" -o -name "layout_*.xml" -o -name "*content*.xml" | while read file; do
+          cp "$file" app/src/main/res/layout/ 2>/dev/null || true
+        done
+
+        find temp_zip -name "strings.xml" -o -name "colors.xml" -o -name "styles.xml" -o -name "themes.xml" | while read file; do
+          cp "$file" app/src/main/res/values/ 2>/dev/null || true
+        done
+
+        find temp_zip -name "ic_*.xml" -o -name "*.png" | while read file; do
+          cp "$file" app/src/main/res/drawable/ 2>/dev/null || true
+        done
+
         rm -rf temp_zip
 
-        # 4. Cria settings.gradle
+        # 6. Cria settings.gradle
         cat << 'EOF' > settings.gradle
         rootProject.name = "EC_Signal_Engine"
         include ':app'
         EOF
 
-        # 5. Cria build.gradle raiz
+        # 7. Cria build.gradle raiz
         cat << 'EOF' > build.gradle
         buildscript {
             repositories {
@@ -75,7 +90,7 @@ jobs:
         }
         EOF
 
-        # 6. Cria app/build.gradle
+        # 8. Cria app/build.gradle
         cat << 'EOF' > app/build.gradle
         apply plugin: 'com.android.application'
 
@@ -106,7 +121,7 @@ jobs:
 
     - name: Compilar APK com Gradle
       run: |
-        gradle assembleDebug --stacktrace --no-daemon
+        gradle assembleDebug --no-daemon
 
     - name: Guardar APK
       uses: actions/upload-artifact@v4
