@@ -19,6 +19,11 @@ jobs:
         java-version: '17'
         distribution: 'temurin'
 
+    - name: Instalar Gradle 7.6.1
+      uses: gradle/actions/setup-gradle@v3
+      with:
+        gradle-version: '7.6.1'
+
     - name: Configurar e Organizar Projeto Android
       run: |
         # 1. Extrai o ZIP caso exista
@@ -45,20 +50,6 @@ jobs:
 
         # 3. Cria settings.gradle
         cat << 'EOF' > settings.gradle
-        pluginManagement {
-            repositories {
-                google()
-                mavenCentral()
-                gradlePluginPortal()
-            }
-        }
-        dependencyResolutionManagement {
-            repositoriesMode.set(RepositoriesMode.FAIL_ON_PROJECT_REPOS)
-            repositories {
-                google()
-                mavenCentral()
-            }
-        }
         rootProject.name = "EC_Signal_Engine"
         include ':app'
         EOF
@@ -71,25 +62,30 @@ jobs:
                 mavenCentral()
             }
             dependencies {
-                classpath 'com.android.tools.build:gradle:8.1.1'
+                classpath 'com.android.tools.build:gradle:7.4.2'
+            }
+        }
+
+        allprojects {
+            repositories {
+                google()
+                mavenCentral()
             }
         }
         EOF
 
         # 5. Cria app/build.gradle
         cat << 'EOF' > app/build.gradle
-        plugins {
-            id 'com.android.application'
-        }
+        apply plugin: 'com.android.application'
 
         android {
             namespace 'com.ecsignalengine'
-            compileSdk 33
+            compileSdkVersion 33
 
             defaultConfig {
                 applicationId "com.ecsignalengine"
-                minSdk 21
-                targetSdk 33
+                minSdkVersion 21
+                targetSdkVersion 33
                 versionCode 1
                 versionName "1.0"
             }
@@ -109,9 +105,7 @@ jobs:
 
     - name: Compilar APK com Gradle
       run: |
-        gradle wrapper --gradle-version 8.0
-        chmod +x gradlew
-        ./gradlew assembleDebug --stacktrace --no-daemon
+        gradle assembleDebug --no-daemon
 
     - name: Guardar APK
       uses: actions/upload-artifact@v4
