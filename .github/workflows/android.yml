@@ -40,27 +40,30 @@ jobs:
           unzip -o "$ZIP_FILE" -d temp_zip
         fi
 
-        # 3. Organiza apenas o AndroidManifest.xml
+        # 3. Organiza o AndroidManifest.xml
         MANIFEST_FILE=$(find temp_zip -name "AndroidManifest.xml" | head -n 1)
         if [ -n "$MANIFEST_FILE" ]; then
           cp "$MANIFEST_FILE" app/src/main/
         fi
 
-        # 4. Copia APENAS ficheiros Java para a pasta de codigo
+        # 4. Copia ficheiros Java
         find temp_zip -name "*.java" -exec cp {} app/src/main/java/ \; 2>/dev/null || true
 
-        # 5. Copia APENAS recursos XML para as suas respetivas pastas em res
+        # 5. Copia recursos XML evitando duplicados
         find temp_zip -name "activity_*.xml" -o -name "layout_*.xml" -o -name "*content*.xml" | while read file; do
           cp "$file" app/src/main/res/layout/ 2>/dev/null || true
         done
 
-        find temp_zip -name "strings.xml" -o -name "colors.xml" -o -name "styles.xml" -o -name "themes.xml" | while read file; do
+        find temp_zip -name "strings.xml" -o -name "colors.xml" -o -name "themes.xml" | while read file; do
           cp "$file" app/src/main/res/values/ 2>/dev/null || true
         done
 
         find temp_zip -name "ic_*.xml" -o -name "*.png" | while read file; do
           cp "$file" app/src/main/res/drawable/ 2>/dev/null || true
         done
+
+        # Elimina ficheiro styles.xml em falta ou duplicado se existir
+        rm -f app/src/main/res/values/styles.xml
 
         rm -rf temp_zip
 
