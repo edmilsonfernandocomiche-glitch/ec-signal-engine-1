@@ -46,7 +46,7 @@ jobs:
           cp "$MANIFEST_FILE" app/src/main/
         fi
 
-        # 4. Copia os ficheiros Java preservando a estrutura de pacotes
+        # 4. Copia os ficheiros Java preservando os pacotes
         find temp_zip -name "*.java" | while read file; do
           pkg=$(grep -m 1 "^package " "$file" | sed 's/package //;s/;//' | tr -d '\r')
           if [ -n "$pkg" ]; then
@@ -100,7 +100,7 @@ jobs:
         }
         EOF
 
-        # 8. Cria app/build.gradle
+        # 8. Cria app/build.gradle COM A DEPENDÊNCIA WEBKIT ADICIONADA
         cat << 'EOF' > app/build.gradle
         apply plugin: 'com.android.application'
 
@@ -126,17 +126,13 @@ jobs:
         dependencies {
             implementation 'androidx.appcompat:appcompat:1.6.1'
             implementation 'com.google.android.material:material:1.9.0'
+            implementation 'androidx.webkit:webkit:1.8.0'
         }
         EOF
 
     - name: Compilar APK com Gradle
       run: |
-        gradle assembleDebug --console=plain --warning-mode=none || true
-
-    - name: Mostrar Apenas os Erros de Compilacao do Java
-      run: |
-        echo "=== ERROS ENCONTRADOS NO CODIGO JAVA ==="
-        gradle assembleDebug --console=plain 2>&1 | grep -E "error:|cannot find symbol|package .* does not exist" | head -n 30 || true
+        gradle assembleDebug --no-daemon
 
     - name: Guardar APK
       uses: actions/upload-artifact@v4
