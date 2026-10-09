@@ -102,4 +102,19 @@ jobs:
         }
 
         dependencies {
-            implementation 'androidx.appcompat:appcompat
+            implementation 'androidx.appcompat:appcompat:1.6.1'
+            implementation 'com.google.android.material:material:1.9.0'
+        }
+        EOF
+
+    - name: Compilar APK com Gradle
+      run: |
+        gradle wrapper --gradle-version 8.0
+        chmod +x gradlew
+        ./gradlew assembleDebug --no-daemon
+
+    - name: Guardar APK
+      uses: actions/upload-artifact@v4
+      with:
+        name: app-debug
+        path: app/build/outputs/apk/debug/*.apk
